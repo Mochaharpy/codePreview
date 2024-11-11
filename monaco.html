@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #454545;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            padding: 10px;
+        }
+        #output-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            padding: 10px;
+        }
+        label {
+            color: white;
+            margin: 5px 0;
+        }
+        .editor, iframe {
+            flex: 1;
+            background-color: #1f1f1f;
+            border: 1px solid #ccc;
+        }
+        #theme-toggle {
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: background-color 0.3s, color 0.3s;
+            color: white;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></script>
+</head>
+<body>
+    <button id="theme-toggle">Light Mode</button> <!-- Default text as Light Mode -->
+    
+    <div class="container">
+        <label>HTML</label>
+        <div id="html-editor" class="editor"></div>
+        <label>CSS</label>
+        <div id="css-editor" class="editor"></div>
+        <label>JavaScript</label>
+        <div id="js-editor" class="editor"></div>
+    </div>
+    <div id="output-container">
+        <label>Output</label>
+        <iframe id="output" class="editor"></iframe>
+    </div>
+
+    <script>
+        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor/min/vs' }});
+        let currentTheme = 'vs-dark'; // Default theme is dark
+
+        require(['vs/editor/editor.main'], function() {
+            const htmlEditor = monaco.editor.create(document.getElementById('html-editor'), {
+                language: 'html',
+                theme: currentTheme,
+                automaticLayout: true,
+                autoClosingQuotes: "always",
+                autoClosingTags: true,
+                suggestOnTriggerCharacters: true
+            });
+
+            const cssEditor = monaco.editor.create(document.getElementById('css-editor'), {
+                language: 'css',
+                theme: currentTheme,
+                automaticLayout: true
+            });
+
+            const jsEditor = monaco.editor.create(document.getElementById('js-editor'), {
+                language: 'javascript',
+                theme: currentTheme,
+                automaticLayout: true,
+                autoClosingBrackets: "always",
+                autoClosingQuotes: "always",
+                suggestOnTriggerCharacters: true
+            });
+
+            function run() {
+                const htmlCode = htmlEditor.getValue();
+                const cssCode = cssEditor.getValue();
+                const jsCode = jsEditor.getValue();
+                const output = document.getElementById("output");
+
+                output.contentDocument.body.innerHTML = htmlCode + "<style>" + cssCode + "</style>";
+                output.contentWindow.eval(jsCode);
+            }
+
+            htmlEditor.onDidChangeModelContent(run);
+            cssEditor.onDidChangeModelContent(run);
+            jsEditor.onDidChangeModelContent(run);
+
+            // Handle theme toggle button
+            document.getElementById("theme-toggle").addEventListener("click", function() {
+                if (currentTheme === 'vs-dark') {
+                    currentTheme = 'vs-light'; // Switch to light mode
+                    document.body.style.backgroundColor = '#fff';
+                    document.body.style.color = '#333';
+                    this.textContent = 'Dark Mode'; // Change button text to Dark Mode
+                    this.style.backgroundColor = '#ddd'; // Lighter background for dark mode
+                    this.style.color = '#333'; // Dark text for readability
+                } else {
+                    currentTheme = 'vs-dark'; // Switch to dark mode
+                    document.body.style.backgroundColor = '#454545';
+                    document.body.style.color = '#fff';
+                    this.textContent = 'Light Mode'; // Change button text to Light Mode
+                    this.style.backgroundColor = '#333'; // Darker background for light mode
+                    this.style.color = '#fff'; // Light text for readability
+                }
+                
+                // Change Monaco editor theme
+                htmlEditor.updateOptions({ theme: currentTheme });
+                cssEditor.updateOptions({ theme: currentTheme });
+                jsEditor.updateOptions({ theme: currentTheme });
+            });
+        });
+    </script>
+</body>
+</html>
