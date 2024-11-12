@@ -111,28 +111,35 @@
             jsEditor.onDidChangeModelContent(run);
 
             // Handle theme toggle button
-            document.getElementById("theme-toggle").addEventListener("click", function() {
-                if (currentTheme === 'vs-dark') {
-                    currentTheme = 'vs-light'; // Switch to light mode
-                    document.body.style.backgroundColor = '#fff';
-                    document.body.style.color = '#333';
-                    this.textContent = 'Dark Mode'; // Change button text to Dark Mode
-                    this.style.backgroundColor = '#ddd'; // Lighter background for dark mode
-                    this.style.color = '#333'; // Dark text for readability
-                } else {
-                    currentTheme = 'vs-dark'; // Switch to dark mode
-                    document.body.style.backgroundColor = '#454545';
-                    document.body.style.color = '#fff';
-                    this.textContent = 'Light Mode'; // Change button text to Light Mode
-                    this.style.backgroundColor = '#333'; // Darker background for light mode
-                    this.style.color = '#fff'; // Light text for readability
-                }
-                
-                // Change Monaco editor theme
-                htmlEditor.updateOptions({ theme: currentTheme });
-                cssEditor.updateOptions({ theme: currentTheme });
-                jsEditor.updateOptions({ theme: currentTheme });
-            });
+        document.getElementById("theme-toggle").addEventListener("click", function() {
+            const labels = document.querySelectorAll('label');
+
+            if (currentTheme === 'vs-dark') {
+                currentTheme = 'vs-light'; // Switch to light mode
+                document.body.style.backgroundColor = '#fff';
+                document.body.style.color = '#333';
+                this.textContent = 'Dark Mode'; // Change button text to Dark Mode
+                this.style.backgroundColor = '#ddd'; // Lighter background for dark mode
+                this.style.color = '#333'; // Dark text for readability
+
+                labels.forEach(label => label.style.color = '#333'); // Change label color to dark
+            } else {
+                currentTheme = 'vs-dark'; // Switch to dark mode
+                document.body.style.backgroundColor = '#454545';
+                document.body.style.color = '#fff';
+                this.textContent = 'Light Mode'; // Change button text to Light Mode
+                this.style.backgroundColor = '#333'; // Darker background for light mode
+                this.style.color = '#fff'; // Light text for readability
+
+                labels.forEach(label => label.style.color = '#fff'); // Change label color to light
+            }
+
+            // Change Monaco editor theme
+            htmlEditor.updateOptions({ theme: currentTheme });
+            cssEditor.updateOptions({ theme: currentTheme });
+            jsEditor.updateOptions({ theme: currentTheme });
+        });
+
         });
     </script>
 </body>
