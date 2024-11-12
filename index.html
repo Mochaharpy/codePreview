@@ -120,20 +120,28 @@
                 automaticLayout: true
             });
 
+            // Function to run code and display output
             function run() {
                 const htmlCode = htmlEditor.getValue();
                 const cssCode = cssEditor.getValue();
                 const jsCode = jsEditor.getValue();
                 const output = document.getElementById("output");
 
+                // Clear the iframe content before updating
                 output.contentDocument.body.innerHTML = htmlCode + "<style>" + cssCode + "</style>";
-                output.contentWindow.eval(jsCode);
+
+                // Only run the JavaScript code if it's not empty
+                if (jsCode.trim()) {
+                    output.contentWindow.eval(jsCode);
+                }
             }
 
+            // Add event listeners to monitor content changes
             htmlEditor.onDidChangeModelContent(run);
             cssEditor.onDidChangeModelContent(run);
             jsEditor.onDidChangeModelContent(run);
 
+            // Theme toggle button
             const labels = document.querySelectorAll("label");
             const themeToggleBtn = document.getElementById("theme-toggle");
             const fullscreenToggleBtn = document.getElementById("fullscreen-toggle");
@@ -168,11 +176,13 @@
                 });
             });
 
+            // Fullscreen editor toggle
             fullscreenToggleBtn.addEventListener("click", function() {
                 const fullscreenEditor = document.getElementById("fullscreen-editor");
                 fullscreenEditor.style.display = fullscreenEditor.style.display === "none" ? "flex" : "none";
             });
 
+            // Update language of the single editor based on file-type input
             document.getElementById("file-type").addEventListener("input", function() {
                 const language = this.value.trim().toLowerCase() || "html";
                 monaco.editor.setModelLanguage(singleEditor.getModel(), language);
