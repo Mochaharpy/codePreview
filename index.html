@@ -14,14 +14,14 @@
             background-color: #454545;
             transition: background-color 0.3s, color 0.3s;
         }
-        .container {
+        .container, .fullscreen-editor {
             display: flex;
             flex-direction: column;
             width: 50%;
             padding: 10px;
+            transition: width 0.3s;
         }
         #output-container {
-            flex: 1;
             display: flex;
             flex-direction: column;
             width: 50%;
@@ -30,13 +30,14 @@
         label {
             color: white;
             margin: 5px 0;
+            transition: color 0.3s;
         }
         .editor, iframe {
             flex: 1;
             background-color: #1f1f1f;
             border: 1px solid #ccc;
         }
-        #theme-toggle {
+        #theme-toggle, #fullscreen-toggle {
             position: fixed;
             top: 0px;
             right: 0px;
@@ -48,12 +49,30 @@
             transition: background-color 0.3s, color 0.3s;
             color: white;
         }
+        #fullscreen-toggle {
+            right: 120px; /* Position next to theme toggle */
+        }
+        .fullscreen-editor {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: #1f1f1f;
+            z-index: 1000;
+            display: none;
+            padding: 20px;
+        }
+        .file-type {
+            margin-bottom: 10px;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></script>
 </head>
 <body>
-    <button id="theme-toggle">Light Mode</button> <!-- Default text as Light Mode -->
-    
+    <button id="theme-toggle">Light Mode</button>
+    <button id="fullscreen-toggle">Full Screen Editor</button>
+
     <div class="container">
         <label>HTML</label>
         <div id="html-editor" class="editor"></div>
@@ -67,18 +86,20 @@
         <iframe id="output" class="editor"></iframe>
     </div>
 
+    <div class="fullscreen-editor" id="fullscreen-editor">
+        <input type="text" id="file-type" class="file-type" placeholder="Enter file type (e.g., html, css, js)" />
+        <div id="single-editor" class="editor"></div>
+    </div>
+
     <script>
         require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor/min/vs' }});
-        let currentTheme = 'vs-dark'; // Default theme is dark
+        let currentTheme = 'vs-dark';
 
         require(['vs/editor/editor.main'], function() {
             const htmlEditor = monaco.editor.create(document.getElementById('html-editor'), {
                 language: 'html',
                 theme: currentTheme,
-                automaticLayout: true,
-                autoClosingQuotes: "always",
-                autoClosingTags: true,
-                suggestOnTriggerCharacters: true
+                automaticLayout: true
             });
 
             const cssEditor = monaco.editor.create(document.getElementById('css-editor'), {
@@ -90,10 +111,13 @@
             const jsEditor = monaco.editor.create(document.getElementById('js-editor'), {
                 language: 'javascript',
                 theme: currentTheme,
-                automaticLayout: true,
-                autoClosingBrackets: "always",
-                autoClosingQuotes: "always",
-                suggestOnTriggerCharacters: true
+                automaticLayout: true
+            });
+
+            const singleEditor = monaco.editor.create(document.getElementById('single-editor'), {
+                language: 'html',
+                theme: currentTheme,
+                automaticLayout: true
             });
 
             function run() {
@@ -110,36 +134,49 @@
             cssEditor.onDidChangeModelContent(run);
             jsEditor.onDidChangeModelContent(run);
 
-            // Handle theme toggle button
-        document.getElementById("theme-toggle").addEventListener("click", function() {
-            const labels = document.querySelectorAll('label');
+            const labels = document.querySelectorAll("label");
+            const themeToggleBtn = document.getElementById("theme-toggle");
+            const fullscreenToggleBtn = document.getElementById("fullscreen-toggle");
 
-            if (currentTheme === 'vs-dark') {
-                currentTheme = 'vs-light'; // Switch to light mode
-                document.body.style.backgroundColor = '#fff';
-                document.body.style.color = '#333';
-                this.textContent = 'Dark Mode'; // Change button text to Dark Mode
-                this.style.backgroundColor = '#ddd'; // Lighter background for dark mode
-                this.style.color = '#333'; // Dark text for readability
+            themeToggleBtn.addEventListener("click", function() {
+                if (currentTheme === 'vs-dark') {
+                    currentTheme = 'vs-light';
+                    document.body.style.backgroundColor = '#fff';
+                    document.body.style.color = '#333';
+                    this.textContent = 'Dark Mode';
+                    this.style.backgroundColor = '#ddd';
+                    this.style.color = '#333';
+                    fullscreenToggleBtn.style.backgroundColor = '#ddd';
+                    fullscreenToggleBtn.style.color = '#333';
+                    labels.forEach(label => label.style.color = '#333');
+                } else {
+                    currentTheme = 'vs-dark';
+                    document.body.style.backgroundColor = '#454545';
+                    document.body.style.color = '#fff';
+                    this.textContent = 'Light Mode';
+                    this.style.backgroundColor = '#333';
+                    this.style.color = '#fff';
+                    fullscreenToggleBtn.style.backgroundColor = '#333';
+                    fullscreenToggleBtn.style.color = '#fff';
+                    labels.forEach(label => label.style.color = '#fff');
+                }
 
-                labels.forEach(label => label.style.color = '#333'); // Change label color to dark
-            } else {
-                currentTheme = 'vs-dark'; // Switch to dark mode
-                document.body.style.backgroundColor = '#454545';
-                document.body.style.color = '#fff';
-                this.textContent = 'Light Mode'; // Change button text to Light Mode
-                this.style.backgroundColor = '#333'; // Darker background for light mode
-                this.style.color = '#fff'; // Light text for readability
+                // Update theme for all editors
+                [htmlEditor, cssEditor, jsEditor, singleEditor].forEach(editor => {
+                    monaco.editor.setTheme(currentTheme);
+                    editor.updateOptions({ theme: currentTheme });
+                });
+            });
 
-                labels.forEach(label => label.style.color = '#fff'); // Change label color to light
-            }
+            fullscreenToggleBtn.addEventListener("click", function() {
+                const fullscreenEditor = document.getElementById("fullscreen-editor");
+                fullscreenEditor.style.display = fullscreenEditor.style.display === "none" ? "flex" : "none";
+            });
 
-            // Change Monaco editor theme
-            htmlEditor.updateOptions({ theme: currentTheme });
-            cssEditor.updateOptions({ theme: currentTheme });
-            jsEditor.updateOptions({ theme: currentTheme });
-        });
-
+            document.getElementById("file-type").addEventListener("input", function() {
+                const language = this.value.trim().toLowerCase() || "html";
+                monaco.editor.setModelLanguage(singleEditor.getModel(), language);
+            });
         });
     </script>
 </body>
