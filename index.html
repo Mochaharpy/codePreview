@@ -125,15 +125,27 @@
                 const htmlCode = htmlEditor.getValue();
                 const cssCode = cssEditor.getValue();
                 const jsCode = jsEditor.getValue();
-                const output = document.getElementById("output");
 
-                // Clear the iframe content before updating
-                output.contentDocument.body.innerHTML = htmlCode + "<style>" + cssCode + "</style>";
+                // Create srcdoc with HTML, CSS, and JavaScript
+                const outputDoc = `
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>${cssCode}</style>
+                    </head>
+                    <body>
+                        ${htmlCode}
+                        <script>
+                            ${jsCode}
+                        <\/script>
+                    </body>
+                    </html>
+                `;
 
-                // Only run the JavaScript code if it's not empty
-                if (jsCode.trim()) {
-                    output.contentWindow.eval(jsCode);
-                }
+                // Set iframe srcdoc to the generated document
+                document.getElementById("output").srcdoc = outputDoc;
             }
 
             // Add event listeners to monitor content changes
@@ -179,13 +191,16 @@
             // Fullscreen editor toggle
             fullscreenToggleBtn.addEventListener("click", function() {
                 const fullscreenEditor = document.getElementById("fullscreen-editor");
-                fullscreenEditor.style.display = fullscreenEditor.style.display === "none" ? "flex" : "none";
+                fullscreenEditor.style.display = fullscreenEditor.style.display === "flex" ? "none" : "flex";
             });
 
             // Update language of the single editor based on file-type input
             document.getElementById("file-type").addEventListener("input", function() {
-                const language = this.value.trim().toLowerCase() || "html";
-                monaco.editor.setModelLanguage(singleEditor.getModel(), language);
+                const language = this.value.trim().toLowerCase();
+                const validLanguages = ['html', 'css', 'javascript'];
+                if (validLanguages.includes(language)) {
+                    monaco.editor.setModelLanguage(singleEditor.getModel(), language);
+                }
             });
         });
     </script>
